@@ -13,53 +13,64 @@ variables:
   webAppName: 'Mosiba'
   environmentName: 'Dev'
 
+# -------------------------
+# STAGE 1 — BUILD
+# -------------------------
 stages:
 - stage: Build_and_Test
   displayName: BUILD_CODE
   jobs:
-  - job:
+  - deployment: Build_App
     displayName: Building_App
-  pool:
-   name: Default
-   steps:
-    - task: NodeTaskRunnerInstaller@0
-      inputs:
-        nodeVersion: '10'
-    - task: Npm@1
-      inputs:
-        command: 'install'
-        workingDir: '''$(System.DefaultWorkingDirectory)'''
+    environment: Dev
+    pool:
+      name: Default
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: NodeTaskRunnerInstaller@0
+            inputs:
+              nodeVersion: '10'
 
-    - task: Npm@1
-      inputs:
-        command: 'build'
-        workingDir: '$(System.DefaultWorkingDirectory)'
+          - task: Npm@1
+            inputs:
+              command: 'install'
+              workingDir: '$(System.DefaultWorkingDirectory)'
 
-    - task: Npm@1
-      inputs:
-        command: 'publish'
-        workingDir: '''$(System.DefaultWorkingDirectory)'''
+          - task: Npm@1
+            inputs:
+              command: 'custom'
+              customCommand: 'run build'
+              workingDir: '$(System.DefaultWorkingDirectory)'
 
+          - task: Npm@1
+            inputs:
+              command: 'publish'
+              workingDir: '$(System.DefaultWorkingDirectory)'
+
+
+# -------------------------
+# STAGE 2 — DEPLOY
+# -------------------------
 - stage: DEPLOY_STAGE
-  dependsOn: Build_and_Test
   displayName: DEPLOYING_TO_DEV
+  dependsOn: Build_and_Test
   jobs:
-  - deployment: 
+  - deployment: Deploy_App
     displayName: Deploying Mosiba
-  pool:
-   name: Default  
-   steps:
-    - task: AzureWebApp@1
-      inputs:
-        azureSubscription: 'Outlook Zone(962b4151-437e-49ed-8400-d11abfcc3073)'
-        appType: 'webAppLinux'
-        appName: 'Mosiba'
-        package: '$(System.DefaultWorkingDirectory)/**/*.zip'
-        runtimeStack: 'NODE|24-lts'
-        startUpCommand: 'npm run start'
-    
-
-
-
-
-
+    environment: Dev
+    pool:
+      name: Default
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: 'Outlook Zone(962b4151-437e-49ed-8400-d11abfcc3073)'
+              appType: 'webAppLinux'
+              appName: 'Mosiba'
+              package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+              runtimeStack: 'NODE|24-lts'
+              startUpCommand: 'npm run start'
