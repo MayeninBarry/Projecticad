@@ -36,7 +36,12 @@ stages:
         command: 'build'
         workingDir: 'package.json'
 
+    - task: Npm@1
+      inputs:
+        command: 'publish'
+        workingDir: 'package.json'
 
+    
     
 
 
