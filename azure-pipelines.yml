@@ -1,0 +1,53 @@
+name: ProjectiCad_$(Date:yyyyMMdd)$(R:.r)
+
+trigger:
+- main
+
+pool:
+  name: Default
+
+variables:
+  azureSubscription: 'd439147f-ff34-4075-98ad-c0c9d864d6c1'
+  ResourceGrpName: 'RG-GroupMosiba'
+  wepAppPlan: 'Appplan-Mosiba'
+  webAppName: 'Mosiba'
+  environmentName: 'Dev'
+
+stages:
+- stage: Build_and_Test
+  displayName: Build and Test Stage
+  jobs:
+  - job:
+    displayName: Building_App
+  pool:
+   name: Default
+    
+   steps:
+    - task: NodeTaskRunnerInstaller@0
+      inputs:
+        nodeVersion: '10'
+    - task: Npm@1
+      inputs:
+        command: 'install'
+        workingDir: 'package.json'
+
+    - task: Npm@1
+      inputs:
+        command: 'build'
+        workingDir: 'package.json'
+
+
+    
+
+
+
+
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
