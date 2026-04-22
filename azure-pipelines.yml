@@ -15,13 +15,12 @@ variables:
 
 stages:
 - stage: Build_and_Test
-  displayName: Build and Test Stage
+  displayName: BUILD_CODE
   jobs:
   - job:
     displayName: Building_App
   pool:
    name: Default
-    
    steps:
     - task: NodeTaskRunnerInstaller@0
       inputs:
@@ -29,19 +28,35 @@ stages:
     - task: Npm@1
       inputs:
         command: 'install'
-        workingDir: 'package.json'
+        workingDir: '''$(System.DefaultWorkingDirectory)'''
 
     - task: Npm@1
       inputs:
         command: 'build'
-        workingDir: 'package.json'
+        workingDir: '$(System.DefaultWorkingDirectory)'
 
     - task: Npm@1
       inputs:
         command: 'publish'
-        workingDir: 'package.json'
+        workingDir: '''$(System.DefaultWorkingDirectory)'''
 
-    
+- stage: DEPLOY_STAGE
+  dependsOn: Build_and_Test
+  displayName: DEPLOYING_TO_DEV
+  jobs:
+  - deployment: 
+    displayName: Deploying Mosiba
+  pool:
+   name: Default  
+   steps:
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: 'Outlook Zone(962b4151-437e-49ed-8400-d11abfcc3073)'
+        appType: 'webAppLinux'
+        appName: 'Mosiba'
+        package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+        runtimeStack: 'NODE|24-lts'
+        startUpCommand: 'npm run start'
     
 
 
